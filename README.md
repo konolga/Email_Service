@@ -1,1 +1,1 @@
-# EmailService
+Service that catches random joke and emails it using SendGrid API
