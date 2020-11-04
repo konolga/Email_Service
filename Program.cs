@@ -1,31 +1,22 @@
-﻿using System;
-using System.Net.Http;
-using System.Threading.Tasks;
-using EmailService.Models;
+﻿using EmailService.Models;
 using EmailService.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Threading.Tasks;
 
 namespace EmailService
 {
     class Program
     {
 
-<<<<<<< HEAD
-        static async Task Main(string[] args)
-        {
-            var config = InitConfig();
-            var host = InitHost();
-=======
 
         static async Task Main(string[] args)
         {
-
-            
-            var host = BuildWebHost();
->>>>>>> c7f0d18... Email service
+            IConfigurationRoot configurationRoot = InitConfig();
+            var host = InitHost(configurationRoot);
             using (var serviceScope = host.Services.CreateScope())
             {
                 var services = serviceScope.ServiceProvider;
@@ -34,68 +25,54 @@ namespace EmailService
                 {
                     Console.WriteLine("What is your email?");
                     string emailTo = Console.ReadLine();
-                    string content = ""; //TODO: get content from API
+                    string subject = "today's joke";
+                    string emailFrom = "test@test.com";
+                    string emailFromName = "Joke postman";
+                    string defaultJoke = "Sorry, no joke for you today";
+                    var jokeService = services.GetRequiredService<JokeService>();
+
+                    JokeTemplate joke = await jokeService.GetJokeAsync();
+                    string content = joke!=null ? joke.Joke : defaultJoke;
+
                     var gridService = services.GetRequiredService<GridEmailService>();
-                    EmailTemplate emailMessage = gridService.BuildMessage(emailTo, null, null, content);
-                    var response = await gridService.SendEmailAsync(emailMessage);
-                    Console.WriteLine(response);
+                    SendGridMessage emailMessage = gridService.BuildMessage(emailTo, emailFrom, emailFromName, subject, content);
+                    bool response = await gridService.SendEmailAsync(emailMessage);
+
+                    Console.WriteLine(response ? "Email was sent successfully" : "Something went wrong");
                 }
                 catch (Exception ex)
                 {
-                    var logger = services.GetRequiredService<ILogger<Program>>();
-                    logger.LogError(ex, "An error occurred.");
+                    throw ex.GetBaseException();
                 }
             }
 
         }
 
-<<<<<<< HEAD
         private static IConfigurationRoot InitConfig()
         {
             var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             var builder = new ConfigurationBuilder()
-                .AddJsonFile($"appsettings.json", true, true)
+                .AddJsonFile($"appsettings.json", false, true)
                 .AddJsonFile($"appsettings.{env}.json", true, true)
                 .AddEnvironmentVariables();
-
             return builder.Build();
         }
 
-        private static IHost InitHost() { 
-=======
-
-        private static IHost BuildWebHost()
+        private static IHost InitHost(IConfigurationRoot configurationRoot)
         {
-            var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-            var config = new ConfigurationBuilder()
-                    .AddJsonFile($"appsettings.json", true, true)
-                    .AddJsonFile($"appsettings.{env}.json", true, true)
-                    .AddEnvironmentVariables()
-                    .Build();
-
->>>>>>> c7f0d18... Email service
             var builder = new HostBuilder()
              .ConfigureServices((hostContext, services) =>
              {
                  services.AddHttpClient();
-                 services.AddTransient<GridEmailService>();
-<<<<<<< HEAD
-=======
-                 services.AddSingleton<IConfigurationRoot>(config);
->>>>>>> c7f0d18... Email service
+                 services.AddScoped<GridEmailService>();
+                 services.AddScoped<JokeService>();
+                 services.AddSingleton<IConfiguration>(configurationRoot);
+                 services.Configure<AppConfig>(configurationRoot.GetSection("AppConfig"));
+                 //services.Configure<IcanhazdadjokeConfig>(configurationRoot.GetSection("IcanhazdadjokeConfig"));
              }).UseConsoleLifetime();
 
             return builder.Build();
         }
-<<<<<<< HEAD
 
     }
 }
-
-
-
-
-=======
-    }
-}
->>>>>>> c7f0d18... Email service

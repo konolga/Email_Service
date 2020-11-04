@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace EmailService.Interface
 {
-    interface IMessageService
+    interface IJokeService
     {
-        EmailTemplate BuildMessage(string emailTo, string emailFrom, string subject, string content);
+        Task<JokeTemplate> GetJokeAsync();
     }
 }

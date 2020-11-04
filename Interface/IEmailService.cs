@@ -6,6 +6,8 @@ namespace EmailService.Interface
 {
     interface IEmailService
     {
-        Task<string> SendEmailAsync(EmailTemplate emailTemplate); 
+        Task<bool> SendEmailAsync(SendGridMessage emailTemplate);
+
+        SendGridMessage BuildMessage(string emailTo, string emailFrom, string emailFromName, string subject, string content);
     }
 }
